@@ -3,16 +3,12 @@ import sqlite3
 import customtkinter as ctk
 from datetime import datetime
 from dotenv import load_dotenv
-from PIL import Image  # Certifique-se de ter o Pillow instalado: pip install pillow
+from PIL import Image 
 
-# ==========================================
 # CONFIGURAÇÃO DO DIRETÓRIO BASE
-# ==========================================
 DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
 
-# ==========================================
 # CONFIGURAÇÃO DO BANCO DE DADOS
-# ==========================================
 BANCO_DADOS = os.path.join(DIRETORIO_ATUAL, "estoque_obra.db")
 
 def inicializar_banco():
@@ -47,9 +43,7 @@ def registrar_log(usuario, acao):
     conexao.commit()
     conexao.close()
 
-# ==========================================
 # USUÁRIOS (via users.env)
-# ==========================================
 caminho_config = os.path.join(DIRETORIO_ATUAL, "users.env")
 load_dotenv(dotenv_path=caminho_config)
 
@@ -91,9 +85,7 @@ PERFIL_LABELS = {
     "operario_devolucao": "Fiscalização / Devoluções",
 }
 
-# ==========================================
 # CORES E TEMA
-# ==========================================
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
@@ -120,9 +112,8 @@ FONTE_SMALL   = ("Segoe UI", 11)
 FONTE_ENTRY   = FONTE_INPUT
 FONTE_BTN     = ("Segoe UI", 13, "bold")
 
-# ==========================================
 # TELA DE LOGIN
-# ==========================================
+
 class TelaLogin(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -141,29 +132,23 @@ class TelaLogin(ctk.CTk):
         self.state("zoomed")
 
     def _construir_ui(self):
-        # Altura reajustada para 540 pixels para ajustar o layout sem a barra azul
         painel = ctk.CTkFrame(self, width=460,
                       fg_color=COR_PAINEL, corner_radius=20,
                       border_width=1, border_color=COR_BORDA)
         painel.place(relx=0.5, rely=0.5, anchor="center")
         #painel.pack_propagate(False)
-
-        # --- SEÇÃO DA LOGO (APENAS A IMAGEM) ---
         caminho_logo = os.path.join(DIRETORIO_ATUAL, "logo.png")
         try:
             imagem_pil = Image.open(caminho_logo)
             self.logo_image = ctk.CTkImage(light_image=imagem_pil, dark_image=imagem_pil, size=(400, 400))
             
             self.label_logo = ctk.CTkLabel(painel, text="", image=self.logo_image)
-            self.label_logo.pack(pady=(10, 0))  # Um espaçamento de 35 no topo para centralizar bem
+            self.label_logo.pack(pady=(10, 0)) 
         except Exception as e:
             print(f"Aviso: Não foi possível carregar a imagem 'logo.png'. Motivo: {e}")
-            # Se a logo falhar, coloca uma etiqueta simples apenas para o sistema não ficar vazio
             ctk.CTkLabel(painel, text="🏗 Armazena+", font=FONTE_TITULO, text_color=COR_AZUL_ESCURO).pack(pady=(5, 2))
 
-        # --- BARRA AZUL COM TEXTOS REMOVIDA DAQUI ---
 
-        # Inputs
         ctk.CTkLabel(painel, text="Usuário", font=FONTE_LABEL,
                      text_color=COR_TEXTO_SEC).pack(anchor="w", padx=36, pady=(15, 2))
         self.campo_usuario = ctk.CTkEntry(painel, width=388, height=44,
@@ -221,9 +206,7 @@ class TelaLogin(ctk.CTk):
         dashboard = TelaDashboard(usuario, perfil, self)
         dashboard.mainloop()
 
-# ==========================================
 # DASHBOARD PRINCIPAL
-# ==========================================
 class TelaDashboard(ctk.CTkToplevel):
     def __init__(self, usuario, perfil, login_ref):
         super().__init__()
@@ -347,7 +330,7 @@ class TelaDashboard(ctk.CTkToplevel):
         label_widget.configure(text=msg, text_color=cor)
         label_widget.after(3000, lambda: label_widget.configure(text=""))
 
-    # ===== ABA ESTOQUE =====
+    # ABA ESTOQUE
     def _criar_tab_estoque(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent", corner_radius=0)
 
@@ -448,7 +431,7 @@ class TelaDashboard(ctk.CTkToplevel):
                                    fg_color=bg, corner_radius=0)
                 lbl.grid(row=i, column=col, sticky="ew", padx=(16 if col == 0 else 6), pady=5)
 
-    # ===== ABA CADASTRAR =====
+    # ABA CADASTRAR
     def _criar_tab_cadastrar(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Cadastrar Novo Item")
@@ -533,7 +516,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.cad_unidade.delete(0, "end")
         self.cad_qtd.delete(0, "end")
 
-    # ===== ABA ENTRADA =====
+    # ABA ENTRADA
     def _criar_tab_entrada(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Dar Entrada / Reabastecer Estoque")
@@ -590,7 +573,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.ent_id.delete(0, "end")
         self.ent_qtd.delete(0, "end")
 
-    # ===== ABA SAÍDA =====
+    # ABA SAÍDA
     def _criar_tab_saida(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Dar Saída / Emprestar Ferramenta")
@@ -678,7 +661,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.saida_qtd.delete(0, "end")
         self.saida_dest.delete(0, "end")
 
-    # ===== ABA DEVOLUÇÃO =====
+    # ABA DEVOLUÇÃO
     def _criar_tab_devolucao(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Registrar Devolução de Ferramenta")
@@ -729,7 +712,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self._feedback(self.lbl_dev_feedback, f"✔ '{nome}' devolvida ao almoxarifado.")
         self.dev_id.delete(0, "end")
 
-    # ===== ABA LOGS =====
+    # ABA LOGS
     def _criar_tab_logs(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Histórico de Auditoria")
