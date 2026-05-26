@@ -1,0 +1,21 @@
+[19/05/2026 13:48:45] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:48:55] Usuário: marcos | Ação: Recebeu a devolução da ferramenta '4' que estava com .
+[19/05/2026 13:49:09] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:50:26] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:50:29] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 13:51:23] Usuário: marcos | Ação: Retirou 4 unidades de 'Tijolo Cerâmico' para uso na frente de obra: Canteiro.
+[19/05/2026 13:51:27] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 13:52:32] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:52:38] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 13:55:19] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:55:23] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 13:58:28] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 13:58:33] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 13:58:51] Usuário: marcos | Ação: Emprestou a ferramenta 'Furadeira Bosch 110v' (ID 3) para Luís.
+[19/05/2026 13:58:53] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 14:02:07] Usuário: marcos | Ação: Fez login no sistema.
+[19/05/2026 14:02:09] Usuário: marcos | Ação: Consultou o estoque atual.
+[19/05/2026 14:04:05] Usuário: marcos | Ação: Consultou o estoque atual.
+[21/05/2026 08:14:38] Usuário: marcos | Ação: Fez login no sistema.
+[21/05/2026 09:27:47] Usuário: marcos | Ação: Fez login no sistema.
+[21/05/2026 09:31:38] Usuário: marcos | Ação: Fez login no sistema.
