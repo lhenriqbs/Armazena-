@@ -3,16 +3,10 @@ import sqlite3
 import customtkinter as ctk
 from datetime import datetime
 from dotenv import load_dotenv
-from PIL import Image  # Certifique-se de ter o Pillow instalado: pip install pillow
+from PIL import Image 
 
-# ==========================================
-# CONFIGURAÇÃO DO DIRETÓRIO BASE
-# ==========================================
 DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
 
-# ==========================================
-# CONFIGURAÇÃO DO BANCO DE DADOS
-# ==========================================
 BANCO_DADOS = os.path.join(DIRETORIO_ATUAL, "estoque_obra.db")
 
 def inicializar_banco():
@@ -47,9 +41,6 @@ def registrar_log(usuario, acao):
     conexao.commit()
     conexao.close()
 
-# ==========================================
-# USUÁRIOS (via users.env)
-# ==========================================
 caminho_config = os.path.join(DIRETORIO_ATUAL, "users.env")
 load_dotenv(dotenv_path=caminho_config)
 
@@ -91,25 +82,23 @@ PERFIL_LABELS = {
     "operario_devolucao": "Fiscalização / Devoluções",
 }
 
-# ==========================================
-# CORES E TEMA
-# ==========================================
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
-COR_AZUL       = "#1d4ed8"
-COR_AZUL_ESCURO = "#1e3a5f"
-COR_AZUL_HOVER  = "#3b82f6"
-COR_FUNDO      = "#e2e8f0"
-COR_PAINEL     = "#f1f5f9"
-COR_BRANCO     = "#ffffff"
-COR_TEXTO      = "#0f172a"
-COR_TEXTO_SEC  = "#475569"
-COR_BORDA      = "#cbd5e1"
-COR_ERRO       = "#b45309"
-COR_VERDE      = "#16a34a"
-COR_VERMELHO   = "#dc2626"
-COR_AMARELO    = "#ca8a04"
+COR_AZUL         = "#1d4ed8"
+COR_AZUL_ESCURO  = "#1e3a5f"
+COR_AZUL_HOVER   = "#3b82f6"
+COR_AMARELO      = "#eab308"  
+COR_AMARELO_HOVER = "#fde047" 
+COR_FUNDO        = "#e2e8f0"
+COR_PAINEL       = "#f1f5f9"
+COR_BRANCO       = "#ffffff"
+COR_TEXTO        = "#0f172a"
+COR_TEXTO_SEC    = "#475569"
+COR_BORDA        = "#cbd5e1"
+COR_ERRO         = "#b45309"
+COR_VERDE        = "#16a34a"
+COR_VERMELHO     = "#dc2626"
 
 FONTE_TITULO  = ("Segoe UI", 22, "bold")
 FONTE_SUB     = ("Segoe UI", 13)
@@ -120,9 +109,6 @@ FONTE_SMALL   = ("Segoe UI", 11)
 FONTE_ENTRY   = FONTE_INPUT
 FONTE_BTN     = ("Segoe UI", 13, "bold")
 
-# ==========================================
-# TELA DE LOGIN
-# ==========================================
 class TelaLogin(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -141,7 +127,7 @@ class TelaLogin(ctk.CTk):
         self.state("zoomed")
 
     def _construir_ui(self):
-        painel = ctk.CTkFrame(self, width=460, height=540,
+        painel = ctk.CTkFrame(self, width=460, height=780,
                               fg_color=COR_PAINEL, corner_radius=20,
                               border_width=1, border_color=COR_BORDA)
         painel.place(relx=0.5, rely=0.5, anchor="center")
@@ -151,15 +137,14 @@ class TelaLogin(ctk.CTk):
         try:
             imagem_pil = Image.open(caminho_logo)
             self.logo_image = ctk.CTkImage(light_image=imagem_pil, dark_image=imagem_pil, size=(400, 400))
-            
             self.label_logo = ctk.CTkLabel(painel, text="", image=self.logo_image)
-            self.label_logo.pack(pady=(35, 10))
+            self.label_logo.pack(pady=(10, 0))
         except Exception as e:
             print(f"Aviso: Não foi possível carregar a imagem 'logo.png'. Motivo: {e}")
             ctk.CTkLabel(painel, text="🏗 Armazena+", font=FONTE_TITULO, text_color=COR_AZUL_ESCURO).pack(pady=(35, 10))
 
         ctk.CTkLabel(painel, text="Usuário", font=FONTE_LABEL,
-                     text_color=COR_TEXTO_SEC).pack(anchor="w", padx=36, pady=(15, 2))
+                     text_color=COR_TEXTO_SEC).pack(anchor="w", padx=36, pady=(5, 2))
         self.campo_usuario = ctk.CTkEntry(painel, width=388, height=44,
                                           placeholder_text="Digite seu usuário",
                                           fg_color=COR_BRANCO, border_color=COR_BORDA,
@@ -215,9 +200,6 @@ class TelaLogin(ctk.CTk):
         dashboard = TelaDashboard(usuario, perfil, self)
         dashboard.mainloop()
 
-# ==========================================
-# DASHBOARD PRINCIPAL
-# ==========================================
 class TelaDashboard(ctk.CTkToplevel):
     def __init__(self, usuario, perfil, login_ref):
         super().__init__()
@@ -271,6 +253,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.tabs["entrada"]   = self._criar_tab_entrada()
         self.tabs["saida"]     = self._criar_tab_saida()
         self.tabs["devolucao"] = self._criar_tab_devolucao()
+        self.tabs["apagar"]    = self._criar_tab_apagar()
         self.tabs["logs"]      = self._criar_tab_logs()
 
     def _construir_sidebar(self):
@@ -281,8 +264,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.nav_btns = {}
         menus = [("estoque", "📦  Estoque")]
 
-        # FILTRO CORRIGIDO: Permite que administradores e fiscais visualizem a Auditoria
-        if self.perfil == "admin" or self.perfil == "operario_devolucao":
+        if self.perfil == "admin":
             menus.append(("logs", "📋  Auditoria"))
         if self.perfil == "operario_entrada" or self.perfil == "admin":
             menus += [("cadastrar", "➕  Cadastrar Item"),
@@ -291,6 +273,9 @@ class TelaDashboard(ctk.CTkToplevel):
             menus.append(("saida", "📤  Dar Saída"))
         if self.perfil == "operario_devolucao" or self.perfil == "admin":
             menus.append(("devolucao", "🔄  Devoluções"))
+            
+        if self.perfil == "admin":
+            menus.append(("apagar", "❌  Apagar Item"))
 
         for key, label in menus:
             btn = ctk.CTkButton(self.sidebar, text=label, anchor="w", width=180, height=40,
@@ -300,6 +285,17 @@ class TelaDashboard(ctk.CTkToplevel):
             btn.pack(anchor="w", padx=10, pady=2)
             self.nav_btns[key] = btn
 
+        caminho_logo = os.path.join(DIRETORIO_ATUAL, "logo.png")
+        try:
+            imagem_pil = Image.open(caminho_logo)
+            self.logo_sidebar = ctk.CTkImage(light_image=imagem_pil, dark_image=imagem_pil, size=(180, 180))
+            lbl_logo_sidebar = ctk.CTkLabel(self.sidebar, text="", image=self.logo_sidebar)
+            lbl_logo_sidebar.pack(side="bottom", anchor="w", padx=10, pady=15)
+        except Exception as e:
+            print(f"Aviso: Não foi possível carregar a logo no menu lateral. Motivo: {e}")
+            ctk.CTkLabel(self.sidebar, text="🏗 Armazena+", font=FONTE_SMALL, 
+                         text_color=COR_TEXTO_SEC).pack(side="bottom", anchor="w", padx=16, pady=15)
+
     def _mostrar_tab(self, key):
         for k, frame in self.tabs.items():
             frame.pack_forget()
@@ -307,8 +303,9 @@ class TelaDashboard(ctk.CTkToplevel):
 
         for k, btn in self.nav_btns.items():
             btn.configure(
-                fg_color=COR_AZUL if k == key else "transparent",
-                text_color=COR_BRANCO if k == key else COR_TEXTO_SEC
+                fg_color=COR_AMARELO if k == key else "transparent",
+                text_color=COR_AZUL_ESCURO if k == key else COR_TEXTO_SEC,
+                hover_color=COR_AMARELO_HOVER if k == key else "#e2e8f0"
             )
         if key == "estoque":
             self._carregar_estoque()
@@ -342,7 +339,6 @@ class TelaDashboard(ctk.CTkToplevel):
         label_widget.configure(text=msg, text_color=cor)
         label_widget.after(3000, lambda: label_widget.configure(text=""))
 
-    # ===== ABA ESTOQUE =====
     def _criar_tab_estoque(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent", corner_radius=0)
 
@@ -371,24 +367,27 @@ class TelaDashboard(ctk.CTkToplevel):
         card_tabela = self._card(frame, "Itens em Estoque")
         card_tabela.pack(fill="both", expand=True)
 
-        cabecalho = ctk.CTkFrame(card_tabela, fg_color="#f8fafc", corner_radius=0)
+        cabecalho = ctk.CTkFrame(card_tabela, fg_color="#f1f5f9", corner_radius=0, height=35)
         cabecalho.pack(fill="x", padx=1)
-        for col, (texto, peso) in enumerate([("ID",4),("Nome",30),("Tipo",14),("Qtd / Status",18),("Responsável",18)]):
-            ctk.CTkLabel(cabecalho, text=texto, font=FONTE_SMALL, text_color=COR_TEXTO_SEC,
-                         anchor="w").grid(row=0, column=col, sticky="w",
-                                          padx=(16 if col==0 else 6), pady=8)
+        cabecalho.pack_propagate(False)
+
+        colunas_config = [("ID", 5, "center"), ("Nome do Item", 55, "w"), ("Tipo", 12, "center"), ("Qtd / Status", 14, "center"), ("Responsável", 14, "w")]
+        
+        for col, (texto, peso, ancora) in enumerate(colunas_config):
+            lbl_cab = ctk.CTkLabel(cabecalho, text=texto, font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"), 
+                                   text_color=COR_TEXTO_SEC, anchor=ancora)
+            lbl_cab.grid(row=0, column=col, sticky="ew", padx=(12 if ancora=="w" else 4), pady=6)
             cabecalho.columnconfigure(col, weight=peso)
 
-        self.scroll_estoque = ctk.CTkScrollableFrame(card_tabela, fg_color=COR_BRANCO,
-                                                      corner_radius=0)
+        self.scroll_estoque = ctk.CTkScrollableFrame(card_tabela, fg_color=COR_BRANCO, corner_radius=0)
         self.scroll_estoque.pack(fill="both", expand=True, padx=1, pady=(0,1))
-        for col, peso in enumerate([4,30,14,18,18]):
+        
+        for col, (_, peso, _) in enumerate(colunas_config):
             self.scroll_estoque.columnconfigure(col, weight=peso)
 
         btn_row = ctk.CTkFrame(card_tabela, fg_color="transparent")
         btn_row.pack(anchor="e", padx=16, pady=8)
-        self._btn_acao(btn_row, "↻  Atualizar", self._carregar_estoque,
-                       cor="#475569").pack()
+        self._btn_acao(btn_row, "↻  Atualizar", self._carregar_estoque, cor="#475569").pack()
 
         return frame
 
@@ -425,25 +424,31 @@ class TelaDashboard(ctk.CTkToplevel):
             tipo_texto = "Consumível" if tipo == "consumivel" else "Ferramenta"
             if tipo == "consumivel":
                 qtd_texto = f"{qtd} {unidade or ''}"
-                status_texto = ""
+                status_texto = "-"
             else:
                 qtd_texto = "Disponível" if status == "disponivel" else "Emprestada"
-                status_texto = resp or ""
+                status_texto = resp or "-"
 
-            for col, (val, ancora) in enumerate([
+            dados_colunas = [
                 (str(id_prod), "center"),
                 (nome,         "w"),
                 (tipo_texto,   "center"),
                 (qtd_texto,    "center"),
                 (status_texto, "w"),
-            ]):
+            ]
+
+            for col, (val, ancora) in enumerate(dados_colunas):
                 cor_val = COR_AZUL if col == 0 else (COR_VERMELHO if val == "Emprestada" else COR_TEXTO)
-                lbl = ctk.CTkLabel(self.scroll_estoque, text=val, font=FONTE_TABLE,
+                
+                celula_borda = ctk.CTkFrame(self.scroll_estoque, fg_color="#e2e8f0", corner_radius=0, height=28)
+                celula_borda.grid(row=i, column=col, sticky="nsew")
+                celula_borda.grid_propagate(False)
+                
+                lbl = ctk.CTkLabel(celula_borda, text=val, font=FONTE_TABLE,
                                    text_color=cor_val, anchor=ancora,
                                    fg_color=bg, corner_radius=0)
-                lbl.grid(row=i, column=col, sticky="ew", padx=(16 if col == 0 else 6), pady=5)
+                lbl.pack(fill="both", expand=True, padx=(10 if ancora=="w" else 2), pady=(0, 1))
 
-    # ===== ABA CADASTRAR =====
     def _criar_tab_cadastrar(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Cadastrar Novo Item")
@@ -522,13 +527,11 @@ class TelaDashboard(ctk.CTkToplevel):
         conexao.close()
 
         registrar_log(self.usuario, mensagem_log)
-
         self._feedback(self.lbl_cad_feedback, f"✔ '{nome}' cadastrado com sucesso!")
         self.cad_nome.delete(0, "end")
         self.cad_unidade.delete(0, "end")
         self.cad_qtd.delete(0, "end")
 
-    # ===== ABA ENTRADA =====
     def _criar_tab_entrada(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Dar Entrada / Reabastecer Estoque")
@@ -576,7 +579,6 @@ class TelaDashboard(ctk.CTkToplevel):
 
         nova_qtd = qtd_atual + qtd
         cursor.execute("UPDATE estoque SET quantidade=? WHERE id=?", (nova_qtd, id_prod))
-        
         conexao.commit()
         conexao.close()
         
@@ -585,7 +587,6 @@ class TelaDashboard(ctk.CTkToplevel):
         self.ent_id.delete(0, "end")
         self.ent_qtd.delete(0, "end")
 
-    # ===== ABA SAÍDA =====
     def _criar_tab_saida(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         card  = self._card(frame, "Dar Saída / Emprestar Ferramenta")
@@ -655,4 +656,185 @@ class TelaDashboard(ctk.CTkToplevel):
             msg_feedback = f"✔ Saída de {qtd} '{nome}' registrada."
         else:
             if status_atual == "emprestado":
-                self._
+                self._feedback(self.lbl_saida_feedback, "⚠ Ferramenta já está emprestada!", COR_ERRO)
+                conexao.close()
+                return
+            
+            cursor.execute("UPDATE estoque SET status='emprestado', responsavel=? WHERE id=?", (dest, id_prod))
+            mensagem_log = f"Emprestou a ferramenta '{nome}' (ID {id_prod}) para {dest}."
+            msg_feedback = f"✔ Ferramenta '{nome}' entregue para {dest}."
+
+        conexao.commit()
+        conexao.close()
+        
+        registrar_log(self.usuario, mensagem_log)
+        self._feedback(self.lbl_saida_feedback, msg_feedback)
+
+        self.saida_id.delete(0, "end")
+        self.saida_qtd.delete(0, "end")
+        self.saida_dest.delete(0, "end")
+
+    def _criar_tab_devolucao(self):
+        frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
+        card  = self._card(frame, "Registrar Devolução de Ferramenta")
+        card.pack(fill="x")
+
+        inner = ctk.CTkFrame(card, fg_color="transparent")
+        inner.pack(fill="x", padx=20, pady=12)
+
+        ctk.CTkLabel(inner, text="ID da Ferramenta", font=FONTE_LABEL, text_color=COR_TEXTO_SEC).pack(anchor="w")
+        self.dev_id = self._entry(inner, "Ex: 2")
+        self.dev_id.pack(fill="x", pady=(4, 10))
+
+        self.lbl_dev_feedback = ctk.CTkLabel(inner, text="", font=FONTE_LABEL)
+        self.lbl_dev_feedback.pack(pady=4)
+
+        self._btn_acao(inner, "🔄  Registrar Devolução", self._devolver_ferramenta).pack(fill="x")
+        return frame
+
+    def _devolver_ferramenta(self):
+        try:
+            id_prod = int(self.dev_id.get())
+        except ValueError:
+            self._feedback(self.lbl_dev_feedback, "⚠ ID inválido.", COR_ERRO)
+            return
+
+        conexao = sqlite3.connect(BANCO_DADOS)
+        cursor  = conexao.cursor()
+        cursor.execute("SELECT nome, tipo, status, responsavel FROM estoque WHERE id=?", (id_prod,))
+        prod = cursor.fetchone()
+
+        if not prod or prod[1] != "ferramenta":
+            self._feedback(self.lbl_dev_feedback, "⚠ ID inválido ou não é ferramenta.", COR_ERRO)
+            conexao.close()
+            return
+
+        nome, _, status_atual, antigo_resp = prod
+        if status_atual == "disponivel":
+            self._feedback(self.lbl_dev_feedback, "ℹ Ferramenta já está disponível.", COR_AMARELO)
+            conexao.close()
+            return
+
+        cursor.execute("UPDATE estoque SET status='disponivel', responsavel=NULL WHERE id=?", (id_prod,))
+        conexao.commit()
+        conexao.close()
+        
+        registrar_log(self.usuario, f"Recebeu devolução da ferramenta '{nome}' (ID {id_prod}) de {antigo_resp}.")
+        self._feedback(self.lbl_dev_feedback, f"✔ '{nome}' devolvida ao almoxarifado.")
+        self.dev_id.delete(0, "end")
+
+    def _criar_tab_apagar(self):
+        frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
+        card  = self._card(frame, "Remover / Apagar Item Definitivamente do Estoque")
+        card.pack(fill="x")
+
+        inner = ctk.CTkFrame(card, fg_color="transparent")
+        inner.pack(fill="x", padx=20, pady=12)
+
+        ctk.CTkLabel(inner, text="ID do Item a ser excluído", font=FONTE_LABEL, text_color=COR_TEXTO_SEC).pack(anchor="w")
+        self.apagar_id = self._entry(inner, "Ex: 4")
+        self.apagar_id.pack(fill="x", pady=(4, 10))
+
+        self.lbl_apagar_feedback = ctk.CTkLabel(inner, text="", font=FONTE_LABEL)
+        self.lbl_apagar_feedback.pack(pady=4)
+
+        self._btn_acao(inner, "❌  APAGAR ITEM DEFINITIVAMENTE", self._apagar_item, cor=COR_VERMELHO).pack(fill="x")
+        return frame
+
+    def _apagar_item(self):
+        # Proteção extra via código: Caso o usuário tente de alguma forma rodar a ação sem ser admin
+        if self.perfil != "admin":
+            self._feedback(self.lbl_apagar_feedback, "⚠ Erro: Apenas administradores podem apagar itens.", COR_ERRO)
+            return
+
+        try:
+            id_prod = int(self.apagar_id.get())
+        except ValueError:
+            self._feedback(self.lbl_apagar_feedback, "⚠ Informe um ID numérico válido.", COR_ERRO)
+            return
+
+        conexao = sqlite3.connect(BANCO_DADOS)
+        cursor  = conexao.cursor()
+        
+        cursor.execute("SELECT nome FROM estoque WHERE id=?", (id_prod,))
+        prod = cursor.fetchone()
+
+        if not prod:
+            self._feedback(self.lbl_apagar_feedback, "⚠ Nenhum item encontrado com este ID.", COR_ERRO)
+            conexao.close()
+            return
+
+        nome_item = prod[0]
+
+        cursor.execute("DELETE FROM estoque WHERE id=?", (id_prod,))
+        conexao.commit()
+        conexao.close()
+
+        registrar_log(self.usuario, f"APAGOU DEFINITIVAMENTE o item '{nome_item}' (ID {id_prod}) do sistema.")
+        
+        self._feedback(self.lbl_apagar_feedback, f"✔ '{nome_item}' foi removido do estoque com sucesso!")
+        self.apagar_id.delete(0, "end")
+
+    # ===== ABA LOGS =====
+    def _criar_tab_logs(self):
+        frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
+        card  = self._card(frame, "Histórico de Auditoria")
+        card.pack(fill="both", expand=True)
+
+        cabecalho = ctk.CTkFrame(card, fg_color="#f8fafc", corner_radius=0)
+        cabecalho.pack(fill="x", padx=1)
+        for col, (texto, peso) in enumerate([("Data / Hora",20),("Usuário",12),("Ação",50)]):
+            ctk.CTkLabel(cabecalho, text=texto, font=FONTE_SMALL, text_color=COR_TEXTO_SEC, anchor="w").grid(
+                         row=0, column=col, sticky="w", padx=(16 if col==0 else 8), pady=8)
+            cabecalho.columnconfigure(col, weight=peso)
+
+        self.scroll_logs = ctk.CTkScrollableFrame(card, fg_color=COR_BRANCO, corner_radius=0)
+        self.scroll_logs.pack(fill="both", expand=True, padx=1, pady=(0,1))
+        for col, peso in enumerate([20,12,50]):
+            self.scroll_logs.columnconfigure(col, weight=peso)
+
+        btn_row = ctk.CTkFrame(card, fg_color="transparent")
+        btn_row.pack(anchor="e", padx=16, pady=8)
+        self._btn_acao(btn_row, "↻  Atualizar", self._carregar_logs, cor="#475569").pack()
+
+        return frame
+
+    def _carregar_logs(self):
+        for widget in self.scroll_logs.winfo_children():
+            widget.destroy()
+
+        conexao = sqlite3.connect(BANCO_DADOS)
+        cursor  = conexao.cursor()
+        cursor.execute("SELECT data_hora, usuario, acao FROM logs_auditoria ORDER BY id DESC LIMIT 200")
+        linhas = cursor.fetchall()
+        conexao.close()
+
+        if not linhas:
+            ctk.CTkLabel(self.scroll_logs, text="Nenhum log registrado.",
+                         text_color=COR_TEXTO_SEC, font=FONTE_LABEL).grid(row=0, column=0, columnspan=3, pady=30)
+            return
+
+        for i, (data_hora, usuario, acao) in enumerate(linhas):
+            bg = COR_BRANCO if i % 2 == 0 else "#f8fafc"
+            for col, (val, ancora, cor) in enumerate([
+                (data_hora, "w",      COR_TEXTO_SEC),
+                (usuario,   "center", COR_AZUL),
+                (acao,      "w",      COR_TEXTO),
+            ]):
+                ctk.CTkLabel(self.scroll_logs, text=val, font=FONTE_TABLE,
+                             text_color=cor, anchor=ancora, fg_color=bg, corner_radius=0).grid(
+                             row=i, column=col, sticky="ew", padx=(16 if col==0 else 8), pady=5)
+
+    def _sair(self):
+        registrar_log(self.usuario, "Fez logout do sistema.")
+        self.destroy()
+        self.login_ref.campo_usuario.delete(0, "end")
+        self.login_ref.campo_senha.delete(0, "end")
+        self.login_ref.lbl_erro.configure(text="")
+        self.login_ref.deiconify()
+        self.login_ref.state("zoomed")
+
+if __name__ == "__main__":
+    inicializar_banco()
+    app = TelaLogin()
+    app.mainloop()
