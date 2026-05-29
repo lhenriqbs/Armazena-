@@ -1,9 +1,14 @@
 import os
 import sqlite3
+import re  # Adicionado para analisar os textos dos logs de auditoria
 import customtkinter as ctk
 from datetime import datetime
 from dotenv import load_dotenv
 from PIL import Image 
+
+# Importações do Matplotlib para renderização dos gráficos na interface Tkinter
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
 
@@ -213,7 +218,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.protocol("WM_DELETE_WINDOW", self._sair)
 
         self._construir_ui()
-        self._mostrar_tab("estoque")
+        self._mostrar_tab("dashboard_grafico")
 
     def _construir_ui(self):
         topbar = ctk.CTkFrame(self, fg_color=COR_AZUL_ESCURO, corner_radius=0, height=56)
@@ -248,6 +253,7 @@ class TelaDashboard(ctk.CTkToplevel):
         self.area_conteudo.pack(side="left", fill="both", expand=True)
 
         self.tabs = {}
+        self.tabs["dashboard_grafico"] = self._criar_tab_dashboard_grafico()
         self.tabs["estoque"]   = self._criar_tab_estoque()
         self.tabs["cadastrar"] = self._criar_tab_cadastrar()
         self.tabs["entrada"]   = self._criar_tab_entrada()
@@ -262,7 +268,7 @@ class TelaDashboard(ctk.CTkToplevel):
                      text_color="#94a3b8").pack(anchor="w", padx=16, pady=(16, 4))
 
         self.nav_btns = {}
-        menus = [("estoque", "📦  Estoque")]
+        menus = [("dashboard_grafico", "📊  Visão Geral"), ("estoque", "📦  Estoque")]
 
         if self.perfil == "admin":
             menus.append(("logs", "📋  Auditoria"))
@@ -307,6 +313,8 @@ class TelaDashboard(ctk.CTkToplevel):
                 text_color=COR_AZUL_ESCURO if k == key else COR_TEXTO_SEC,
                 hover_color=COR_AMARELO_HOVER if k == key else "#e2e8f0"
             )
+        if key == "dashboard_grafico":
+            self._carregar_graficos()
         if key == "estoque":
             self._carregar_estoque()
         if key == "logs":
@@ -338,6 +346,92 @@ class TelaDashboard(ctk.CTkToplevel):
     def _feedback(self, label_widget, msg, cor=COR_VERDE):
         label_widget.configure(text=msg, text_color=cor)
         label_widget.after(3000, lambda: label_widget.configure(text=""))
+
+    # ===== MÉTODOS DO DASHBOARD DE GRÁFICOS =====
+    def _criar_tab_dashboard_grafico(self):
+        frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
+        
+        titulo_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        titulo_frame.pack(fill="x", pady=(0, 15))
+        
+        ctk.CTkLabel(titulo_frame, text="Painel de Indicadores", 
+                     font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold"), 
+                     text_color=COR_AZUL_ESCURO).pack(side="left")
+                     
+        self._btn_acao(titulo_frame, "↻  Atualizar Indicadores", self._carregar_graficos, cor="#475569").pack(side="right")
+
+        self.graficos_container = ctk.CTkFrame(frame, fg_color=COR_BRANCO, corner_radius=12, border_width=1, border_color=COR_BORDA)
+        self.graficos_container.pack(fill="both", expand=True)
+        
+        return frame
+
+    def _carregar_graficos(self):
+        for widget in self.graficos_container.winfo_children():
+            widget.destroy()
+        plt.close('all')
+            
+        conexao = sqlite3.connect(BANCO_DADOS)
+        cursor = conexao.cursor()
+        
+        cursor.execute("SELECT nome, quantidade FROM estoque WHERE tipo='consumivel' ORDER BY quantidade DESC LIMIT 5")
+        dados_estoque = cursor.fetchall()
+        
+        cursor.execute("SELECT acao FROM logs_auditoria WHERE acao LIKE 'Retirou %' OR acao LIKE 'Emprestou %'")
+        logs_saida = cursor.fetchall()
+        conexao.close()
+        
+        saidas_contagem = {}
+        for (acao,) in logs_saida:
+            match_cons = re.search(r"Retirou (\d+) de '(.*?)'", acao)
+            if match_cons:
+                qtd = int(match_cons.group(1))
+                nome = match_cons.group(2)
+                saidas_contagem[nome] = saidas_contagem.get(nome, 0) + qtd
+                continue
+                
+            match_ferr = re.search(r"Emprestou a ferramenta '(.*?)'", acao)
+            if match_ferr:
+                nome = match_ferr.group(1)
+                saidas_contagem[nome] = saidas_contagem.get(nome, 0) + 1
+
+        top_saidas = sorted(saidas_contagem.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5), dpi=100)
+        fig.patch.set_facecolor(COR_BRANCO)
+        
+        if dados_estoque:
+            nomes_est = [d[0] for d in dados_estoque]
+            qtds_est = [d[1] for d in dados_estoque]
+            
+            barras1 = ax1.bar(nomes_est, qtds_est, color=COR_AZUL)
+            ax1.set_title("Maior Volume em Estoque (Top 5)", fontweight="bold", pad=15)
+            ax1.tick_params(axis='x', rotation=15)
+            ax1.spines[['top', 'right']].set_visible(False)
+            ax1.bar_label(barras1, padding=3)
+        else:
+            ax1.text(0.5, 0.5, "Sem itens no estoque", ha='center', va='center')
+            ax1.axis('off')
+            
+        if top_saidas:
+            nomes_sai = [d[0] for d in top_saidas]
+            qtds_sai = [d[1] for d in top_saidas]
+            
+            barras2 = ax2.bar(nomes_sai, qtds_sai, color=COR_VERMELHO)
+            ax2.set_title("Itens que Mais Saíram (Histórico)", fontweight="bold", pad=15)
+            ax2.tick_params(axis='x', rotation=15)
+            ax2.spines[['top', 'right']].set_visible(False)
+            ax2.bar_label(barras2, padding=3)
+        else:
+            ax2.text(0.5, 0.5, "Nenhuma movimentação de saída\nregistrada nos logs", ha='center', va='center')
+            ax2.axis('off')
+            
+        fig.tight_layout()
+            
+        canvas = FigureCanvasTkAgg(fig, master=self.graficos_container)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=20)
+
+    # ===== FIM DOS MÉTODOS DO DASHBOARD =====
 
     def _criar_tab_estoque(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent", corner_radius=0)
@@ -419,34 +513,62 @@ class TelaDashboard(ctk.CTkToplevel):
 
         for i, linha in enumerate(linhas):
             id_prod, nome, tipo, qtd, unidade, status, resp = linha
+            
             bg = COR_BRANCO if i % 2 == 0 else "#f8fafc"
+            bg_qtd = bg
+            cor_texto_qtd = COR_TEXTO
 
             tipo_texto = "Consumível" if tipo == "consumivel" else "Ferramenta"
             if tipo == "consumivel":
                 qtd_texto = f"{qtd} {unidade or ''}"
                 status_texto = "-"
+                
+                # ====== LÓGICA DINÂMICA DE ALERTA DE ACORDO COM O VOLUME ======
+                if qtd > 500: # Itens de altíssimo volume (ex: 1500 unidades)
+                    limite_critico = 30
+                    limite_atencao =  100
+                elif qtd > 100: # Itens de volume médio (ex: 200 a 400 unidades)
+                    limite_critico = 10
+                    limite_atencao = 30
+                else: # Itens normais de baixo volume (ex: até 100 unidades)
+                    limite_critico = 5
+                    limite_atencao = 15
+
+                if qtd <= limite_critico:
+                    bg_qtd = "#fee2e2"       # Fundo Vermelho claro
+                    cor_texto_qtd = COR_VERMELHO
+                    qtd_texto = f"🚨 {qtd_texto}"
+                elif qtd <= limite_atencao:
+                    bg_qtd = "#fef9c3"       # Fundo Amarelo claro
+                    cor_texto_qtd = "#b45309" # Texto Laranja escuro para leitura
+                    qtd_texto = f"⚠️ {qtd_texto}"
+                # ==============================================================
+                
             else:
                 qtd_texto = "Disponível" if status == "disponivel" else "Emprestada"
                 status_texto = resp or "-"
+                if status == "emprestado":
+                    cor_texto_qtd = COR_VERMELHO
 
             dados_colunas = [
-                (str(id_prod), "center"),
-                (nome,         "w"),
-                (tipo_texto,   "center"),
-                (qtd_texto,    "center"),
-                (status_texto, "w"),
+                (str(id_prod), "center", bg, COR_AZUL),
+                (nome,         "w",      bg, COR_TEXTO),
+                (tipo_texto,   "center", bg, COR_TEXTO),
+                (qtd_texto,    "center", bg_qtd, cor_texto_qtd),
+                (status_texto, "w",      bg, COR_TEXTO),
             ]
 
-            for col, (val, ancora) in enumerate(dados_colunas):
-                cor_val = COR_AZUL if col == 0 else (COR_VERMELHO if val == "Emprestada" else COR_TEXTO)
+            for col, (val, ancora, cor_fundo_celula, cor_texto_celula) in enumerate(dados_colunas):
+                if col == 3 and tipo == "ferramenta" and val == "Emprestada":
+                    cor_texto_celula = COR_VERMELHO
                 
                 celula_borda = ctk.CTkFrame(self.scroll_estoque, fg_color="#e2e8f0", corner_radius=0, height=28)
                 celula_borda.grid(row=i, column=col, sticky="nsew")
                 celula_borda.grid_propagate(False)
                 
                 lbl = ctk.CTkLabel(celula_borda, text=val, font=FONTE_TABLE,
-                                   text_color=cor_val, anchor=ancora,
-                                   fg_color=bg, corner_radius=0)
+                                   text_color=cor_texto_celula, anchor=ancora,
+                                   fg_color=cor_fundo_celula, corner_radius=0)
                 lbl.pack(fill="both", expand=True, padx=(10 if ancora=="w" else 2), pady=(0, 1))
 
     def _criar_tab_cadastrar(self):
@@ -742,7 +864,6 @@ class TelaDashboard(ctk.CTkToplevel):
         return frame
 
     def _apagar_item(self):
-        # Proteção extra via código: Caso o usuário tente de alguma forma rodar a ação sem ser admin
         if self.perfil != "admin":
             self._feedback(self.lbl_apagar_feedback, "⚠ Erro: Apenas administradores podem apagar itens.", COR_ERRO)
             return
