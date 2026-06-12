@@ -1,12 +1,12 @@
 import os
 import sqlite3
-import re  # Adicionado para analisar os textos dos logs de auditoria
+import re  
 import customtkinter as ctk
 from datetime import datetime
 from dotenv import load_dotenv
 from PIL import Image 
 
-# Importações do Matplotlib para renderização dos gráficos na interface Tkinter
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -347,7 +347,7 @@ class TelaDashboard(ctk.CTkToplevel):
         label_widget.configure(text=msg, text_color=cor)
         label_widget.after(3000, lambda: label_widget.configure(text=""))
 
-    # ===== MÉTODOS DO DASHBOARD DE GRÁFICOS =====
+   
     def _criar_tab_dashboard_grafico(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent")
         
@@ -431,7 +431,7 @@ class TelaDashboard(ctk.CTkToplevel):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=20)
 
-    # ===== FIM DOS MÉTODOS DO DASHBOARD =====
+
 
     def _criar_tab_estoque(self):
         frame = ctk.CTkFrame(self.area_conteudo, fg_color="transparent", corner_radius=0)
@@ -491,7 +491,7 @@ class TelaDashboard(ctk.CTkToplevel):
 
         conexao = sqlite3.connect(BANCO_DADOS)
         cursor  = conexao.cursor()
-        # Query corrigida: removido o comando duplicado com o termo inválido em inglês
+        # query corrigida removido
         cursor.execute("SELECT id, nome, tipo, quantidade, unidade, status, responsavel FROM estoque")
         linhas  = cursor.fetchall()
         conexao.close()
@@ -524,7 +524,7 @@ class TelaDashboard(ctk.CTkToplevel):
                 qtd_texto = f"{qtd} {unidade or ''}"
                 status_texto = "-"
                 
-                # ====== LÓGICA DINÂMICA DE ALERTA DE ACORDO COM O VOLUME ======
+            
                 try:
                     conn_log = sqlite3.connect(BANCO_DADOS)
                     cur_log = conn_log.cursor()
