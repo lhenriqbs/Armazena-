@@ -1,6 +1,6 @@
 ## Armazena+ | Gestão de Estoque de Obra
 
-O **Armazena+** é uma aplicação desktop desenvolvida para otimizar o controle e a movimentação de materiais e ferramentas em canteiros de obras. Com uma interface moderna, o sistema oferece controle de acesso baseado em funções, monitoramento visual de indicadores, alertas inteligentes de estoque baixo e um histórico completo de auditoria.
+O **Armazena+** fou uma aplicação desktop desenvolvida por Jonas Gabriel, Jeniffer Mônyercia e Luis Henrique. Foi feita com o objetivo de otimizar o controle e a movimentação de materiais e ferramentas em canteiros de obras. Com uma interface moderna, o sistema oferece controle de acesso baseado em funções, monitoramento visual de indicadores, alertas inteligentes de estoque baixo e um histórico completo de auditoria.
 
 ---
 
