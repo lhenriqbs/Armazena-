@@ -1,14 +1,14 @@
-# 🏗️ Armazena+ | Gestão de Estoque de Obra
+## Armazena+ | Gestão de Estoque de Obra
 
 O **Armazena+** é uma aplicação desktop desenvolvida para otimizar o controle e a movimentação de materiais e ferramentas em canteiros de obras. Com uma interface moderna, o sistema oferece controle de acesso baseado em funções, monitoramento visual de indicadores, alertas inteligentes de estoque baixo e um histórico completo de auditoria.
 
 ---
 
-## 📝 Descrição do Projeto
+##  Descrição do Projeto
 
 O sistema foi projetado para atender diferentes perfis de operadores dentro de uma obra, garantindo que cada usuário acesse apenas as ferramentas necessárias para sua função.
 
-### ✨ Principais Funcionalidades:
+###  Principais Funcionalidades:
 * **Controle de Acesso (Perfis Dinâmicos):** Diferenciação de telas e permissões para perfis como *Administrador*, *Entrada de Materiais*, *Saída de Materiais* e *Fiscalização/Devoluções*.
 * **Gestão Híbrida de Itens:** Gerenciamento de itens **Consumíveis** (com controle volumétrico e unidade de medida) e **Ferramentas** (com controle de status e responsável pelo empréstimo).
 * **Painel de Indicadores (Dashboard):** Gráficos gerados em tempo real que exibem o top 5 de itens com maior volume em estoque e o histórico de itens mais retirados.
@@ -17,7 +17,7 @@ O sistema foi projetado para atender diferentes perfis de operadores dentro de u
 
 ---
 
-## 🚀 Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 O projeto foi desenvolvido utilizando o ecossistema Python e as seguintes bibliotecas:
 * **Python 3** - Linguagem base do projeto.
@@ -29,7 +29,7 @@ O projeto foi desenvolvido utilizando o ecossistema Python e as seguintes biblio
 
 ---
 
-## 📋 Requisitos para Execução
+##  Requisitos para Execução
 
 Antes de rodar a aplicação, certifique-se de ter instalado em sua máquina:
 1.  **Python 3.8** ou superior.
